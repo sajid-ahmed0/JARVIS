@@ -1,0 +1,6 @@
+{
+  "name": "JARVIS AI Blueprint",
+  "description": "A futuristic, voice-activated AI assistant prototype with HUD-inspired UI, powered by Gemini and Web Speech API.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
