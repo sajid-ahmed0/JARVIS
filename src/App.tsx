@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, MicOff, Terminal, Activity, Globe, Youtube, Clock, Power } from 'lucide-react';
 import JarvisHUD from './components/JarvisHUD';
@@ -254,7 +254,7 @@ export default function App() {
   );
 }
 
-function HUDWidget({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+function HUDWidget({ icon, label, value }: { icon: ReactNode, label: string, value: string }) {
   return (
     <div className="hud-border p-3 rounded-xl bg-jarvis-background/80 flex items-center gap-3 w-40">
       <div className="text-jarvis-blue/70">{icon}</div>
