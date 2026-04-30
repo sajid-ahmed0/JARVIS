@@ -1,6 +1,13 @@
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+// Use a getter to avoid crashing at module load if the key is missing
+function getAI() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+    throw new Error("GEMINI_API_KEY is not configured. Please add it to your environment or GitHub Secrets.");
+  }
+  return new GoogleGenAI({ apiKey });
+}
 
 /**
  * Define Jarvis actions that the AI can trigger.
@@ -49,6 +56,7 @@ interface JarvisAction {
 
 export async function processCommand(prompt: string): Promise<JarvisAction[]> {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,

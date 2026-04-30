@@ -26,46 +26,53 @@ export default function App() {
   const [logs, setLogs] = useState<string[]>(['[INITIALIZING CORE OS...]', '[LOADING AI NEURAL NETS...]', '[STABILIZING HUD INTERFACE...]']);
   const [isThinking, setIsThinking] = useState(false);
   const [response, setResponse] = useState('');
-  
-  const jarvisAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const addLog = (msg: string) => {
     setLogs(prev => [msg, ...prev].slice(0, 50));
   };
 
   const handleSpeechResult = useCallback(async (text: string) => {
-    setTranscript(text);
-    setStatus('PROCESSING INTENT');
-    addLog(`USER_INPUT: "${text}"`);
-    setIsThinking(true);
-    
-    const actions = await processCommand(text);
-    
-    setIsThinking(false);
-    
-    for (const action of actions) {
-      if (action.type === 'SPEECH') {
-        setResponse(action.message);
-        addLog(`JARVIS: "${action.message}"`);
-        // We could use TTS here if we had a key, but for now we'll use standard browser TTS if desired
-        speak(action.message);
-      } else if (action.type === 'TOOL') {
-        const { name, args } = action.data;
-        addLog(`ACTION: ${name} with ${JSON.stringify(args)}`);
-        
-        if (name === 'open_url') {
-          window.open(args.url, '_blank');
-          addLog(`OS: Successfully opened ${args.taskDescription}`);
-        } else if (name === 'tell_time') {
-          const timeStr = new Date().toLocaleTimeString();
-          addLog(`OS: Current time is ${timeStr}`);
-          setResponse(`The current time is ${timeStr}, sir.`);
-          speak(`The current time is ${timeStr}, sir.`);
+    try {
+      setTranscript(text);
+      setErrorMessage(null);
+      setStatus('PROCESSING INTENT');
+      addLog(`USER_INPUT: "${text}"`);
+      setIsThinking(true);
+      
+      const actions = await processCommand(text);
+      
+      setIsThinking(false);
+      
+      for (const action of actions) {
+        if (action.type === 'SPEECH') {
+          setResponse(action.message);
+          addLog(`JARVIS: "${action.message}"`);
+          speak(action.message);
+        } else if (action.type === 'TOOL') {
+          const { name, args } = action.data;
+          addLog(`ACTION: ${name} with ${JSON.stringify(args)}`);
+          
+          if (name === 'open_url') {
+            window.open(args.url, '_blank');
+            addLog(`OS: Successfully opened ${args.taskDescription}`);
+          } else if (name === 'tell_time') {
+            const timeStr = new Date().toLocaleTimeString();
+            addLog(`OS: Current time is ${timeStr}`);
+            setResponse(`The current time is ${timeStr}, sir.`);
+            speak(`The current time is ${timeStr}, sir.`);
+          }
         }
       }
+      
+      setStatus('SYSTEM READY');
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || "An unknown error occurred.");
+      setStatus('OFFLINE');
+      addLog("CRITICAL: Neural core disconnected.");
+      setIsThinking(false);
     }
-    
-    setStatus('SYSTEM READY');
   }, []);
 
   const speak = (text: string) => {
@@ -169,6 +176,18 @@ export default function App() {
                 className="font-display text-xl text-white/90 italic"
               >
                 "{transcript}"
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {errorMessage && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-mono text-xs text-red-500 hud-border border-red-500/50 bg-red-500/10 p-3 rounded mt-4"
+              >
+                [DIAGNOSTIC_FAILURE]: {errorMessage}
               </motion.div>
             )}
           </AnimatePresence>
